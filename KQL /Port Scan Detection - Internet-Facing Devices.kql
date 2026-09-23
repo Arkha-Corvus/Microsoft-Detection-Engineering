@@ -1,0 +1,23 @@
+// Detecting Port Scanning on Internet-Facing Devices
+
+// This query detects port scans or attacks and allows you to take the necessary action against malicious activity. It is a custom Defender XDR detection query that provides visibility across your MDE devices.
+// Upon triggering, carry out the necessary checks, such as confirming that the device has its firewall enabled and identifying any vulnerabilities that could be exposed.
+// This will also show you the country the port scan is coming from, which is always worth investigating.
+
+let InternetFacingDevice=
+DeviceInfo
+| where Timestamp > ago(1h)
+| where IsInternetFacing
+| summarize arg_max(Timestamp, *) by DeviceId
+| project DeviceId;
+DeviceNetworkEvents
+| where DeviceId has_any(InternetFacingDevice)
+| where ActionType == @"InboundConnectionsAttempt"
+| where not(ipv4_is_private(RemoteIP))
+| extend IPLocation = geo_info_from_ip_address(RemoteIP)
+| summarize Connections=count() by RemoteIP, tostring(IPLocation.country)
+| sort by Connections desc
+| where Connections >= 3
+
+// Associated MITRE ATT&CK - T1049
+
