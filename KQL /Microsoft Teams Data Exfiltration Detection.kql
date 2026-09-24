@@ -1,0 +1,19 @@
+// Microsoft Teams Data Exfiltration 
+
+// This KQL query uses Microsoft Defender XDR CloudAppEvents to detect unusual volumes of Teams messages sent to external domains. When the detection triggers, investigate the activity to confirm whether the messages are legitimate.
+
+CloudAppEvents
+| where Application == "Microsoft Teams"
+| where ActionType == "MessageSent"
+| extend AccountUPN = RawEventData.UserId
+| extend CommsType = RawEventData.CommunicationType
+| extend ExternalTenant = RawEventData.ParticipantInfo.HasForeignTenantUsers
+| extend ExtUserDomain = tostring(split(AccountUPN, '@')[1])
+| where CommsType == "true"
+| where ExtUserDomain != ""
+| summarize Count=count() by ExtUserDomain
+| sort by Count desc
+// Set your Teams message trigger threshold to external tenant
+| where count > 15
+// Whitelist External Partner Domain
+| where ExtUserDomain !contains "example.com"
