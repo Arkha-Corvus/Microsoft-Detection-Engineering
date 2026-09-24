@@ -17,3 +17,5 @@ CloudAppEvents
 | where count > 15
 // Whitelist External Partner Domain
 | where ExtUserDomain !contains "example.com"
+
+// Related MITRE ATT&CK - T1071.001, T1102.002, T1078, T1087.001
