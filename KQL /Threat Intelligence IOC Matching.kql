@@ -1,0 +1,19 @@
+// This query identifies network connections between Defender-managed devices and active, high-confidence IP indicators from Microsoft Threat Intelligence.
+// It first filters 'ThreatIntelEntities' for network IOCs that are active, created within the last 24 hours, and have confidence score above 80. It then compares those IPs againts 'DeviceNetworkEvents' from the last 30 days.
+// This provides a quick way to identify devices that have recently communicated with infrastructure associated with known threats. The results can be used to prioritise investigation of inbound connections, outbound connections, exposed services, and potentially compromised hosts.
+// A match does not confirm compromise, it provides a threat-intelligence lead that should be correlated with the connection direction, process activity, and subsequent behaviour on the device.
+
+
+let NetworkIOC =
+ThreatIntelEntities
+| where Created > ago(1d)
+| where IsActive == "1"
+| where ObservableKey == "network-traffic:src_ref.value"
+| where Confidence > 80
+| project ObservableValue;
+DeviceNetworkEvents
+| where Timestamp > ago(30d)
+| where RemoteIP has_any(NetworkIOC)
+
+
+// Potential MITRE ATT&CK: TA0011 (Command and Control), T1071 (Application Layer Protocol), TA0043 (Reconnaissance)
