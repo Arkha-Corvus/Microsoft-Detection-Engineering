@@ -2,7 +2,7 @@
 // It first filters 'ThreatIntelEntities' for network IOCs that are active, created within the last 24 hours, and have confidence score above 80. It then compares those IPs againts 'DeviceNetworkEvents' from the last 30 days.
 // This provides a quick way to identify devices that have recently communicated with infrastructure associated with known threats. The results can be used to prioritise investigation of inbound connections, outbound connections, exposed services, and potentially compromised hosts.
 // A match does not confirm compromise, it provides a threat-intelligence lead that should be correlated with the connection direction, process activity, and subsequent behaviour on the device.
-
+// This could be use as an automated detection rule which could run once a day.
 
 let NetworkIOC =
 ThreatIntelEntities
